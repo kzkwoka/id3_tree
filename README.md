@@ -6,7 +6,7 @@ Assumptions about the datasets:
 - The tree is capable of classifying in more than 2 classes.
 - The missing or unlabeled values are not considered (will be treated as a different label ?).
 
-##### Project steps:
+##### Project steps
 
 1. CVS file processing
 2. Generating a tree
@@ -17,3 +17,7 @@ Assumptions about the datasets:
 5. Performance improvements
     - better build time
     - better clasification
+
+##### Datasets
+- Mushroom dataset (22 attributes, 8124 instances, 2 classes) https://archive.ics.uci.edu/ml/datasets/Mushroom
+- Example dataset from class (5 attributes, 14 instances, 2 classes)

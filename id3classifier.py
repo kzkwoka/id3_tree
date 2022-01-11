@@ -145,6 +145,7 @@ class DecisionTreeID:
         Returns a new dataframe.
         """
         df = self.readCSV(csvname)
+        df.drop(columns=self.predicted_attribute, errors='ignore')
         predictions = []
         for row in df.iloc:
             predictions.append(self.__predict(row, self.root))
@@ -155,6 +156,7 @@ class DecisionTreeID:
         """
         Helper function for iterating over a tree.
         Returns predicted class.
+        TODO: Consider attribute values not in a tree.
         """
         if node._class is not None:
             return node._class
@@ -174,3 +176,20 @@ if __name__ == "__main__":
     tree.learnDT("data/farmaco.csv")
     print(tree.prediction("data/farmaco_test.csv"))
     tree.drawDecisionTree()
+
+    mushroom_tree = DecisionTreeID()
+    mushroom_tree.learnDT("data/agaricus-lepiota-train.csv")
+    true = pd.read_csv("data/agaricus-lepiota-test.csv")
+    predicted = mushroom_tree.prediction("data/agaricus-lepiota-test.csv")
+    predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
+    print(sum(predicted["Correct"])/len(predicted)*100,"%")
+
+    # used for preparing datasets
+    # df = pd.read_csv("data/agaricus-lepiota.csv")
+    # # cols = df.columns.tolist()
+    # # cols[0:-1],cols[-1] = cols[1:],cols[0]
+    # # df = df[cols]
+    # train = df.sample(frac=0.8)
+    # test = df.drop(train.index)
+    # train.to_csv("data/agaricus-lepiota-train.csv", index=False)
+    # test.to_csv("data/agaricus-lepiota-test.csv", index=False)
