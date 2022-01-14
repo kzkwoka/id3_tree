@@ -98,12 +98,12 @@ class Node:
         Prints the attribute label and values for children or class label.
         """
         if self._class is None:
-            print("--"*level, self.attribute)
             for child in self.children.items():
-                print("  "*(level+1), child[0])
+                print("  "*(level-1), "--"*level, self.attribute, "=", child[0])   
                 child[1].print(level=level+1)
         else:
-            print("   "*level,self._class, "(class)")
+            print("  "*(level-1), "--"*level,self._class, "(class)", "\n")
+
 
 
 class DecisionTreeID:
@@ -137,6 +137,7 @@ class DecisionTreeID:
         """
         # TODO: To be corrected
         self.root.print()
+
 
     def prediction(self, csvname):
         """
