@@ -173,17 +173,23 @@ class DecisionTreeID:
 
 
 if __name__ == "__main__":
-    tree = DecisionTreeID()
-    tree.learnDT("data/farmaco.csv")
-    print(tree.prediction("data/farmaco_test.csv"))
-    tree.drawDecisionTree()
+    # tree = DecisionTreeID()
+    # tree.learnDT("data/farmaco.csv")
+    # print(tree.prediction("data/farmaco_test.csv"))
+    # tree.drawDecisionTree()
 
-    mushroom_tree = DecisionTreeID()
-    mushroom_tree.learnDT("data/agaricus-lepiota-train.csv")
-    true = pd.read_csv("data/agaricus-lepiota-test.csv")
-    predicted = mushroom_tree.prediction("data/agaricus-lepiota-test.csv")
-    predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
-    print(sum(predicted["Correct"])/len(predicted)*100,"%")
+    # mushroom_tree = DecisionTreeID()
+    # mushroom_tree.learnDT("data/agaricus-lepiota-train.csv")
+    # true = pd.read_csv("data/agaricus-lepiota-test.csv")
+    # predicted = mushroom_tree.prediction("data/agaricus-lepiota-test.csv")
+    # predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
+    # print(sum(predicted["Correct"])/len(predicted)*100,"%")
+
+    # connect_tree = DecisionTreeID()
+    # connect_tree.learnDT("data/connect-4.csv",first_id=False)
+
+    chess_tree = DecisionTreeID()
+    chess_tree.learnDT("data/chess.csv",first_id=False)
 
     # used for preparing datasets
     # df = pd.read_csv("data/agaricus-lepiota.csv")

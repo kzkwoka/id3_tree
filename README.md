@@ -20,4 +20,6 @@ Assumptions about the datasets:
 
 ##### Datasets
 - Mushroom dataset (22 attributes, 8124 instances, 2 classes) https://archive.ics.uci.edu/ml/datasets/Mushroom
+- Chess dataset (36 attributes, 3196 instances, 2 classes) https://archive.ics.uci.edu/ml/datasets/Chess+%28King-Rook+vs.+King-Pawn%29
+- Connect 4 dataset (42 attributes, 67557 instances, 3 classes) https://archive.ics.uci.edu/ml/datasets/Connect-4
 - Example dataset from class (5 attributes, 14 instances, 2 classes)
