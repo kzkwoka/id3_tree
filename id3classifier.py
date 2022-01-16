@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from random import choice
+from random import choice, randint
 import random
 
 import randomforest as rf
@@ -21,7 +21,7 @@ def findBestAttribute(df):
         gain = calculateGain(df, attribute, entropy)
         if gain >= best[0]:
             if mutate:
-                if(random.randint(1, 100) > 10):
+                if(randint(1, 100) > 10):
                     best = (gain, attribute)
             else:
                 best = (gain, attribute)
@@ -214,6 +214,11 @@ class DecisionTreeID:
 
 
 if __name__ == "__main__":
+# -- Example of drawn decision tree -------
+    tree = DecisionTreeID()
+    tree.learnDT("data/farmaco.csv")
+    tree.drawDecisionTree()
+
 # -- Comparison of efficiency for randomly not selecting the best attribute ---
     print("\nPrediction before improving:")
     print(round(getAccuracy("data/chess-train.csv",
@@ -229,12 +234,7 @@ if __name__ == "__main__":
     print("\nPrediction after improving:")
     print(predictions)
 
-# ------------------------------------------
-    # tree = DecisionTreeID()
-    # tree.learnDT("data/farmaco.csv")
-    # print(tree.prediction("data/farmaco_test.csv"))
-    # tree.drawDecisionTree()
-
+# ----------------------------------------------------------
     # mushroom_tree = DecisionTreeID()
     # mushroom_tree.learnDT("data/agaricus-lepiota-train.csv")
     # true = pd.read_csv("data/agaricus-lepiota-test.csv")
