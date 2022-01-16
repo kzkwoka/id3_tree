@@ -6,7 +6,7 @@ import random
 import randomforest as rf
 
 
-def findBestAttribute(df):
+def findBestAttribute(df, mutate=False):
     """
     For a dataframe return an attribute with biggest gain.
     If all are equal to 0 - returns a random attribute.
@@ -18,7 +18,10 @@ def findBestAttribute(df):
     for attribute in df.columns[:-1]:
         gain = calculateGain(df, attribute, entropy)
         if gain >= best[0]:
-            if(random.randint(1, 100) > 10):
+            if mutate:
+                if(random.randint(1, 100) > 10):
+                    best = (gain, attribute)
+            else:
                 best = (gain, attribute)
     if best[1] is None:
         return choice(df.columns[:-1])
@@ -56,11 +59,11 @@ def chooseMayorityClass(df):
     return df[df.columns[-1]].value_counts().idxmax()
 
 
-def get_accuracy(traincsv, testcsv, classname):
+def get_accuracy(traincsv, testcsv, classname, mutate):
     """
     Trains the decision tree and returns its accuracy in %
     """
-    tree = DecisionTreeID()
+    tree = DecisionTreeID(mutate)
     tree.learnDT(traincsv, first_id=False)
     true = pd.read_csv(testcsv)
     predicted = tree.prediction(testcsv)
@@ -81,11 +84,12 @@ class Node:
     children : dict (default None)
         A dictionary of children nodes keyed with attribute values.
     """
-    def __init__(self, df, attribute, parent=None, _class=None):
+    def __init__(self, df, attribute, parent=None, _class=None, mutate=False):
         self.parent = parent
         self.attribute = attribute
         self._class = _class
         self.children = None
+        self.mutate = mutate
         if df is not None:
             values = df[df.columns[-1]].unique()
             # If the data in this node represents only one class - no split is performed.
@@ -110,7 +114,8 @@ class Node:
                                             chooseMayorityClass(sliced))
             else:
                 self.children[value] = Node(sliced,
-                                            findBestAttribute(sliced), self)
+                                            findBestAttribute(sliced, self.mutate),
+                                            self, mutate=self.mutate)
 
     def print(self, level=1):
         """
@@ -133,9 +138,10 @@ class DecisionTreeID:
     predicted_attribute : str (default None)
         The name of the decision variable.
     """
-    def __init__(self):
+    def __init__(self, mutate):
         self.root = None
         self.predicted_attribute = None
+        self.mutate = mutate
 
     def learnDT(self, csvname=None, first_id=True, data=None):
         """
@@ -150,7 +156,8 @@ class DecisionTreeID:
         if first_id:
             df = df[df.columns[1:]]
         self.predicted_attribute = df.columns[-1]
-        self.root = Node(df, findBestAttribute(df))
+        self.root = Node(df, findBestAttribute(df, self.mutate),
+                         mutate=self.mutate)
 
     def drawDecisionTree(self):
         """
@@ -201,12 +208,12 @@ if __name__ == "__main__":
     print("\nPrediction before improving:")
     print(round(get_accuracy("data/chess-train.csv",
                              "data/chess-test.csv",
-                             "class"), 2), "%")
+                             "class", False), 2), "%")
     predictions = []
-    for i in range(4):
+    for i in range(5):
         predictions.append(round(get_accuracy("data/chess-train.csv",
                                               "data/chess-test.csv",
-                                              "class"), 2))
+                                              "class", True), 2))
     predictions.sort(reverse=True)
     print("\nPrediction after improving:")
     print(predictions)
