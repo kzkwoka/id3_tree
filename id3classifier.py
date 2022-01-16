@@ -1,24 +1,27 @@
 import numpy as np
 import pandas as pd
 from random import choice
+import random
 
 
 def findBestAttribute(df):
     """
     For a dataframe return an attribute with biggest gain.
     If all are equal to 0 - returns a random attribute.
+
+    90% chance a better attribute is chosen.
     """
     entropy = calculateEntropy(df)
     best = (0, None)
     for attribute in df.columns[:-1]:
         gain = calculateGain(df, attribute, entropy)
-        if gain > best[0]:
-            best = (gain, attribute)
+        if gain >= best[0]:
+            if(random.randint(1, 100) > 10):
+                best = (gain, attribute)
     if best[1] is None:
         return choice(df.columns[:-1])
     else:
         return best[1]
-
 
 def calculateEntropy(df):
     """
@@ -28,7 +31,6 @@ def calculateEntropy(df):
     len_ = len(df)
     parts = [i*np.log2(i/len_)/len_ for i in df[df.columns[-1]].value_counts()]
     return -sum(parts)
-
 
 def calculateGain(df, attribute, entropy):
     """
@@ -40,7 +42,6 @@ def calculateGain(df, attribute, entropy):
         cond_entropy = calculateEntropy(sliced_df)
         parts.append(cond_entropy*len(sliced_df)/len(df))
     return entropy - sum(parts)
-
 
 def chooseMayorityClass(df):
     """
@@ -105,7 +106,6 @@ class Node:
             print("  "*(level-1), "--"*level,self._class, "(class)", "\n")
 
 
-
 class DecisionTreeID:
     """
     Represent a ID3 decision tree.
@@ -135,9 +135,7 @@ class DecisionTreeID:
         """
         Draws the decision tree using the Node.draw() function.
         """
-        # TODO: To be corrected
         self.root.print()
-
 
     def prediction(self, csvname):
         """
@@ -188,15 +186,39 @@ if __name__ == "__main__":
     # connect_tree = DecisionTreeID()
     # connect_tree.learnDT("data/connect-4.csv",first_id=False)
 
+    # chess_tree = DecisionTreeID()
+    # chess_tree.learnDT("data/chess.csv",first_id=False)
+
     chess_tree = DecisionTreeID()
-    chess_tree.learnDT("data/chess.csv",first_id=False)
+    chess_tree.learnDT("data/chess-train.csv",first_id=False)
+    true = pd.read_csv("data/chess-test.csv")
+    predicted = chess_tree.prediction("data/chess-test.csv")
+    predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
+    print("\nPrediction before improving:")
+    print(sum(predicted["Correct"])/len(predicted)*100,"%")
+
+    chess_trees = []
+    predictions = []
+    for i in range(1,6):
+        chess_tree = DecisionTreeID()
+        chess_tree.learnDT("data/chess-train.csv",first_id=False)
+        true = pd.read_csv("data/chess-test.csv")
+        predicted = chess_tree.prediction("data/chess-test.csv")
+        predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
+        chess_trees.append(chess_tree)
+        predictions.append(sum(predicted["Correct"])/len(predicted)*100)
+
+    predictions.sort(reverse=True)
+    print("\nPrediction after improving:")
+    print(predictions)
+
 
     # used for preparing datasets
-    # df = pd.read_csv("data/agaricus-lepiota.csv")
+    # df = pd.read_csv("data/chess.csv")
     # # cols = df.columns.tolist()
     # # cols[0:-1],cols[-1] = cols[1:],cols[0]
     # # df = df[cols]
     # train = df.sample(frac=0.8)
     # test = df.drop(train.index)
-    # train.to_csv("data/agaricus-lepiota-train.csv", index=False)
-    # test.to_csv("data/agaricus-lepiota-test.csv", index=False)
+    # train.to_csv("data/chess-train.csv", index=False)
+    # test.to_csv("data/chess-test.csv", index=False)
