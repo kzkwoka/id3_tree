@@ -5,8 +5,10 @@ import random
 
 import randomforest as rf
 
+mutate = False
+early_stop = False
 
-def findBestAttribute(df, mutate=False):
+def findBestAttribute(df):
     """
     For a dataframe return an attribute with biggest gain.
     If all are equal to 0 - returns a random attribute.
@@ -59,11 +61,20 @@ def chooseMayorityClass(df):
     return df[df.columns[-1]].value_counts().idxmax()
 
 
-def get_accuracy(traincsv, testcsv, classname, mutate):
+def hasMajorityClass(df):
+    """
+    Returns True if there is a majority class in dataframe.
+    """
+    if (df[df.columns[-1]].value_counts().max()/len(df)) > 0.8:
+        return True
+    return False
+
+
+def getAccuracy(traincsv, testcsv, classname):
     """
     Trains the decision tree and returns its accuracy in %
     """
-    tree = DecisionTreeID(mutate)
+    tree = DecisionTreeID()
     tree.learnDT(traincsv, first_id=False)
     true = pd.read_csv(testcsv)
     predicted = tree.prediction(testcsv)
@@ -84,12 +95,11 @@ class Node:
     children : dict (default None)
         A dictionary of children nodes keyed with attribute values.
     """
-    def __init__(self, df, attribute, parent=None, _class=None, mutate=False):
+    def __init__(self, df, attribute, parent=None, _class=None):
         self.parent = parent
         self.attribute = attribute
         self._class = _class
         self.children = None
-        self.mutate = mutate
         if df is not None:
             values = df[df.columns[-1]].unique()
             # If the data in this node represents only one class - no split is performed.
@@ -112,10 +122,13 @@ class Node:
             if len(sliced.columns) == 1:
                 self.children[value] = Node(None, None, self,
                                             chooseMayorityClass(sliced))
+            elif early_stop and hasMajorityClass(sliced):
+                self.children[value] = Node(None, None, self,
+                                            chooseMayorityClass(sliced))
             else:
                 self.children[value] = Node(sliced,
-                                            findBestAttribute(sliced, self.mutate),
-                                            self, mutate=self.mutate)
+                                            findBestAttribute(sliced),
+                                            self)
 
     def print(self, level=1):
         """
@@ -138,10 +151,9 @@ class DecisionTreeID:
     predicted_attribute : str (default None)
         The name of the decision variable.
     """
-    def __init__(self, mutate):
+    def __init__(self):
         self.root = None
         self.predicted_attribute = None
-        self.mutate = mutate
 
     def learnDT(self, csvname=None, first_id=True, data=None):
         """
@@ -156,8 +168,7 @@ class DecisionTreeID:
         if first_id:
             df = df[df.columns[1:]]
         self.predicted_attribute = df.columns[-1]
-        self.root = Node(df, findBestAttribute(df, self.mutate),
-                         mutate=self.mutate)
+        self.root = Node(df, findBestAttribute(df))
 
     def drawDecisionTree(self):
         """
@@ -203,17 +214,17 @@ class DecisionTreeID:
 
 
 if __name__ == "__main__":
-
 # -- Comparison of efficiency for randomly not selecting the best attribute ---
     print("\nPrediction before improving:")
-    print(round(get_accuracy("data/chess-train.csv",
-                             "data/chess-test.csv",
-                             "class", False), 2), "%")
+    print(round(getAccuracy("data/chess-train.csv",
+                            "data/chess-test.csv",
+                            "class"), 2), "%")
+    mutate = True
     predictions = []
     for i in range(5):
-        predictions.append(round(get_accuracy("data/chess-train.csv",
-                                              "data/chess-test.csv",
-                                              "class", True), 2))
+        predictions.append(round(getAccuracy("data/chess-train.csv",
+                                             "data/chess-test.csv",
+                                             "class"), 2))
     predictions.sort(reverse=True)
     print("\nPrediction after improving:")
     print(predictions)
