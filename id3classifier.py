@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 from random import choice, randint
 import random
-
-import randomforest as rf
+from timeit import default_timer as timer
 
 mutate = False
 early_stop = False
@@ -80,6 +79,75 @@ def getAccuracy(traincsv, testcsv, classname):
     predicted = tree.prediction(testcsv)
     predicted["Correct"] = np.where(true[classname] == predicted[classname], 1, 0)
     return sum(predicted["Correct"])/len(predicted)*100
+
+
+def measure_time_performance(n):
+    time_original = 0
+    time_mutated = 0
+    time_early_stop = 0
+    time_early_stop_mutated = 0
+    global mutate, early_stop
+    for _ in range(n):
+        mutate = False
+        early_stop = False
+        t = DecisionTreeID()
+        time_original += t.learnDT("data/chess-train.csv")
+
+        mutate = True
+        early_stop = False
+        t = DecisionTreeID()
+        time_mutated += t.learnDT("data/chess-train.csv")
+
+        mutate = False
+        early_stop = True
+        t = DecisionTreeID()
+        time_early_stop += t.learnDT("data/chess-train.csv")
+
+        mutate = True
+        early_stop = True
+        t = DecisionTreeID()
+        time_early_stop_mutated += t.learnDT("data/chess-train.csv")
+
+    print("original", time_original/n, "s")
+    print("mutated", time_mutated/n, "s")
+    print("early stop", time_early_stop/n, "s")
+    print("early stop & mutated", time_early_stop_mutated/n, "s")
+
+def measure_accuracy(n):
+    predictions = []
+    predictions_mutated = []
+    predictions_early_stop = []
+    predictions_early_stop_mutated = []
+    global mutate, early_stop
+    for _ in range(n):
+        mutate = False
+        early_stop = False
+        predictions.append(round(getAccuracy("data/chess-train.csv",
+                                             "data/chess-test.csv",
+                                             "class"), 2))
+        mutate = True
+        early_stop = False
+        predictions_mutated.append(round(getAccuracy("data/chess-train.csv",
+                                                     "data/chess-test.csv",
+                                                     "class"), 2))
+        mutate = False
+        early_stop = True
+        predictions_early_stop.append(round(getAccuracy("data/chess-train.csv",
+                                                        "data/chess-test.csv",
+                                                        "class"), 2))
+        mutate = True
+        early_stop = True
+        predictions_early_stop_mutated.append(round(getAccuracy("data/chess-train.csv",
+                                                                "data/chess-test.csv",
+                                                                "class"), 2))
+    print("original- avg:", sum(predictions)/n, "%, max:",
+          max(predictions), "%")
+    print("mutated- avg:", sum(predictions_mutated)/n, "%, max:",
+          max(predictions_mutated), "%")
+    print("early stop- avg:", sum(predictions_early_stop)/n, "%, max:",
+          max(predictions_early_stop), "%")
+    print("early stop & mutated- avg:", sum(predictions_early_stop_mutated)/n, "%, max:",
+          max(predictions_early_stop_mutated), "%")
 
 
 class Node:
@@ -168,7 +236,10 @@ class DecisionTreeID:
         if first_id:
             df = df[df.columns[1:]]
         self.predicted_attribute = df.columns[-1]
+        start = timer()
         self.root = Node(df, findBestAttribute(df))
+        end = timer()
+        return end - start
 
     def drawDecisionTree(self):
         """
@@ -214,25 +285,22 @@ class DecisionTreeID:
 
 
 if __name__ == "__main__":
-# -- Example of drawn decision tree -------
+
+    # -- Example of drawn decision tree -------
     tree = DecisionTreeID()
     tree.learnDT("data/farmaco.csv")
     tree.drawDecisionTree()
 
-# -- Comparison of efficiency for randomly not selecting the best attribute ---
-    print("\nPrediction before improving:")
-    print(round(getAccuracy("data/chess-train.csv",
-                            "data/chess-test.csv",
-                            "class"), 2), "%")
-    mutate = True
-    predictions = []
-    for i in range(5):
-        predictions.append(round(getAccuracy("data/chess-train.csv",
-                                             "data/chess-test.csv",
-                                             "class"), 2))
-    predictions.sort(reverse=True)
-    print("\nPrediction after improving:")
-    print(predictions)
+    # -- Comparison of efficiency for modifications ---
+    measure_accuracy(5)
+
+    # -- Measuring the time performance with modifications ---
+    measure_time_performance(5)
+
+
+
+
+
 
 # ----------------------------------------------------------
     # mushroom_tree = DecisionTreeID()
@@ -262,5 +330,6 @@ if __name__ == "__main__":
 
 
 # # Example of use of Random Forest
+#     import randomforest as rf
 #     forest = rf.RandomForest("data/chess-train.csv", 5)
 #     forest.predict("data/chess-test.csv")
