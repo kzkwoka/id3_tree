@@ -6,7 +6,7 @@ Assumptions about the datasets:
 - The tree is capable of classifying in more than 2 classes.
 - The missing or unlabeled values are not considered (will be treated as a different label ?).
 
-##### Project steps
+#### Project steps
 
 1. CVS file processing
 2. Generating a tree
@@ -18,13 +18,13 @@ Assumptions about the datasets:
     - better build time
     - better clasification
 
-##### Visual representation
+### Visual representation
 
 Example for the tree based on the dataset seen in class ('data/farmaco.csv').
 
 ![](2022-01-16-20-53-07.png)
 
-##### Modifications
+### Modifications
 
 - The split attribute  in each node is the one with biggest gain.
     - If gains for all attributes equal 0 a random value is chosen.
@@ -34,7 +34,7 @@ Example for the tree based on the dataset seen in class ('data/farmaco.csv').
     - The data represents only one class.
     - 80% of data represents one class (`early_stop=True`)
 
-##### Tests
+### Tests
 Compare the time for building the original and modified trees and their accuracies.
 
 **Time performance**
@@ -52,8 +52,9 @@ The average (of 5 executions) accuracy of each type of trained model in % on che
 |Average|99.53|99.59|88.11|89.74|
 |Max|99.53|99.84|88.11|92.18|
 
-##### Datasets
+### Datasets
 - Chess dataset (36 attributes, 3196 instances, 2 classes) https://archive.ics.uci.edu/ml/datasets/Chess+%28King-Rook+vs.+King-Pawn%29
+- Car dataset (6 attributes, 1728 instances, 4 classes) https://archive.ics.uci.edu/ml/datasets/Car+Evaluation
 - Mushroom dataset (22 attributes, 8124 instances, 2 classes) https://archive.ics.uci.edu/ml/datasets/Mushroom
 - Connect 4 dataset (42 attributes, 67557 instances, 3 classes) https://archive.ics.uci.edu/ml/datasets/Connect-4
 - Example dataset from class (5 attributes, 14 instances, 2 classes)
