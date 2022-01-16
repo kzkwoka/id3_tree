@@ -91,22 +91,22 @@ def measure_time_performance(n):
         mutate = False
         early_stop = False
         t = DecisionTreeID()
-        time_original += t.learnDT("data/chess-train.csv")
+        time_original += t.learnDT("data/chess-train.csv",first_id=False)
 
         mutate = True
         early_stop = False
         t = DecisionTreeID()
-        time_mutated += t.learnDT("data/chess-train.csv")
+        time_mutated += t.learnDT("data/chess-train.csv",first_id=False)
 
         mutate = False
         early_stop = True
         t = DecisionTreeID()
-        time_early_stop += t.learnDT("data/chess-train.csv")
+        time_early_stop += t.learnDT("data/chess-train.csv",first_id=False)
 
         mutate = True
         early_stop = True
         t = DecisionTreeID()
-        time_early_stop_mutated += t.learnDT("data/chess-train.csv")
+        time_early_stop_mutated += t.learnDT("data/chess-train.csv",first_id=False)
 
     print("original", time_original/n, "s")
     print("mutated", time_mutated/n, "s")
@@ -297,39 +297,27 @@ if __name__ == "__main__":
     # -- Measuring the time performance with modifications ---
     measure_time_performance(5)
 
+    # -- Example for 4 class tree
+    car_tree = DecisionTreeID()
+    car_tree.learnDT("data/car-train.csv")
+    car_tree.drawDecisionTree()
+    print(round(getAccuracy("data/car-train.csv", "data/car-test.csv", "class"),2),"%")
 
+    # -- Example of data that gives 100% accuracy--------
+    print(round(getAccuracy("data/agaricus-lepiota-train.csv",
+                            "data/agaricus-lepiota-test.csv", "class"), 2), "%")
 
-
-
-
-# ----------------------------------------------------------
-    # mushroom_tree = DecisionTreeID()
-    # mushroom_tree.learnDT("data/agaricus-lepiota-train.csv")
-    # true = pd.read_csv("data/agaricus-lepiota-test.csv")
-    # predicted = mushroom_tree.prediction("data/agaricus-lepiota-test.csv")
-    # predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
-    # print(sum(predicted["Correct"])/len(predicted)*100,"%")
-
-    # connect_tree = DecisionTreeID()
-    # connect_tree.learnDT("data/connect-4.csv",first_id=False)
-
-    # chess_tree = DecisionTreeID()
-    # chess_tree.learnDT("data/chess.csv",first_id=False)
-
-
-# ----------------------------------------------------------------
-    # used for preparing datasets
-    # df = pd.read_csv("data/chess.csv")
+    # # -- Code used for preparing datasets ---------------
+    # df = pd.read_csv("data/car.csv")
     # # cols = df.columns.tolist()
     # # cols[0:-1],cols[-1] = cols[1:],cols[0]
     # # df = df[cols]
     # train = df.sample(frac=0.8)
     # test = df.drop(train.index)
-    # train.to_csv("data/chess-train.csv", index=False)
-    # test.to_csv("data/chess-test.csv", index=False)
+    # train.to_csv("data/car-train.csv", index=False)
+    # test.to_csv("data/car-test.csv", index=False)
 
-
-# # Example of use of Random Forest
-#     import randomforest as rf
-#     forest = rf.RandomForest("data/chess-train.csv", 5)
-#     forest.predict("data/chess-test.csv")
+    # # Example of use of Random Forest
+    # import randomforest as rf
+    # forest = rf.RandomForest("data/chess-train.csv", 5)
+    # forest.predict("data/chess-test.csv")
