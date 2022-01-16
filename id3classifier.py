@@ -3,6 +3,8 @@ import pandas as pd
 from random import choice
 import random
 
+import randomforest as rf
+
 
 def findBestAttribute(df):
     """
@@ -23,6 +25,7 @@ def findBestAttribute(df):
     else:
         return best[1]
 
+
 def calculateEntropy(df):
     """
     Returns calculated entropy of a dataframe.
@@ -31,6 +34,7 @@ def calculateEntropy(df):
     len_ = len(df)
     parts = [i*np.log2(i/len_)/len_ for i in df[df.columns[-1]].value_counts()]
     return -sum(parts)
+
 
 def calculateGain(df, attribute, entropy):
     """
@@ -43,12 +47,25 @@ def calculateGain(df, attribute, entropy):
         parts.append(cond_entropy*len(sliced_df)/len(df))
     return entropy - sum(parts)
 
+
 def chooseMayorityClass(df):
     """
     Returns the most common class in dataframe.
     Used when there are no more attributes to split.
     """
     return df[df.columns[-1]].value_counts().idxmax()
+
+
+def get_accuracy(traincsv, testcsv, classname):
+    """
+    Trains the decision tree and returns its accuracy in %
+    """
+    tree = DecisionTreeID()
+    tree.learnDT(traincsv, first_id=False)
+    true = pd.read_csv(testcsv)
+    predicted = tree.prediction(testcsv)
+    predicted["Correct"] = np.where(true[classname] == predicted[classname], 1, 0)
+    return sum(predicted["Correct"])/len(predicted)*100
 
 
 class Node:
@@ -69,11 +86,12 @@ class Node:
         self.attribute = attribute
         self._class = _class
         self.children = None
-        values = df[df.columns[-1]].unique()
-        # If the data in this node represents only one class - no split is performed.
-        if len(values) == 1:
-            self.attribute = "Class"
-            self._class = values[0]
+        if df is not None:
+            values = df[df.columns[-1]].unique()
+            # If the data in this node represents only one class - no split is performed.
+            if len(values) == 1:
+                self.attribute = "Class"
+                self._class = values[0]
         if self._class is None:
             self.__createChildren(df, attribute)
 
@@ -100,10 +118,10 @@ class Node:
         """
         if self._class is None:
             for child in self.children.items():
-                print("  "*(level-1), "--"*level, self.attribute, "=", child[0])   
+                print("  "*(level-1), "--"*level, self.attribute, "=", child[0])
                 child[1].print(level=level+1)
         else:
-            print("  "*(level-1), "--"*level,self._class, "(class)", "\n")
+            print("  "*(level-1), "--"*level, self._class, "(class)", "\n")
 
 
 class DecisionTreeID:
@@ -119,13 +137,16 @@ class DecisionTreeID:
         self.root = None
         self.predicted_attribute = None
 
-    def learnDT(self, csvname, first_id=True):
+    def learnDT(self, csvname=None, first_id=True, data=None):
         """
         Trains the decision tree with data from CSV file.
         The decision variable is the last column.
         If there is no indexing in the CSV file set first_id=False.
+        If no CSV file a dataframe data should be passed
         """
-        df = self.readCSV(csvname)
+        df = data
+        if csvname:
+            df = self.readCSV(csvname)
         if first_id:
             df = df[df.columns[1:]]
         self.predicted_attribute = df.columns[-1]
@@ -155,13 +176,17 @@ class DecisionTreeID:
         """
         Helper function for iterating over a tree.
         Returns predicted class.
-        TODO: Consider attribute values not in a tree.
+        When attribute value is not in a tree a random branch is chosen.
         """
         if node._class is not None:
             return node._class
         else:
-            value = df[node.attribute]
-            return self.__predict(df, node.children[value])
+            try:
+                value = df[node.attribute]
+                child = node.children[value]
+            except KeyError:
+                child = random.choice(list(node.children.values()))
+            return self.__predict(df, child)
 
     def readCSV(self, csvname):
         """
@@ -171,6 +196,22 @@ class DecisionTreeID:
 
 
 if __name__ == "__main__":
+
+# -- Comparison of efficiency for randomly not selecting the best attribute ---
+    print("\nPrediction before improving:")
+    print(round(get_accuracy("data/chess-train.csv",
+                             "data/chess-test.csv",
+                             "class"), 2), "%")
+    predictions = []
+    for i in range(4):
+        predictions.append(round(get_accuracy("data/chess-train.csv",
+                                              "data/chess-test.csv",
+                                              "class"), 2))
+    predictions.sort(reverse=True)
+    print("\nPrediction after improving:")
+    print(predictions)
+
+# ------------------------------------------
     # tree = DecisionTreeID()
     # tree.learnDT("data/farmaco.csv")
     # print(tree.prediction("data/farmaco_test.csv"))
@@ -189,30 +230,8 @@ if __name__ == "__main__":
     # chess_tree = DecisionTreeID()
     # chess_tree.learnDT("data/chess.csv",first_id=False)
 
-    chess_tree = DecisionTreeID()
-    chess_tree.learnDT("data/chess-train.csv",first_id=False)
-    true = pd.read_csv("data/chess-test.csv")
-    predicted = chess_tree.prediction("data/chess-test.csv")
-    predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
-    print("\nPrediction before improving:")
-    print(sum(predicted["Correct"])/len(predicted)*100,"%")
 
-    chess_trees = []
-    predictions = []
-    for i in range(1,6):
-        chess_tree = DecisionTreeID()
-        chess_tree.learnDT("data/chess-train.csv",first_id=False)
-        true = pd.read_csv("data/chess-test.csv")
-        predicted = chess_tree.prediction("data/chess-test.csv")
-        predicted["Correct"] = np.where(true["class"]==predicted["class"],1,0)
-        chess_trees.append(chess_tree)
-        predictions.append(sum(predicted["Correct"])/len(predicted)*100)
-
-    predictions.sort(reverse=True)
-    print("\nPrediction after improving:")
-    print(predictions)
-
-
+# ----------------------------------------------------------------
     # used for preparing datasets
     # df = pd.read_csv("data/chess.csv")
     # # cols = df.columns.tolist()
@@ -222,3 +241,8 @@ if __name__ == "__main__":
     # test = df.drop(train.index)
     # train.to_csv("data/chess-train.csv", index=False)
     # test.to_csv("data/chess-test.csv", index=False)
+
+
+# # Example of use of Random Forest
+#     forest = rf.RandomForest("data/chess-train.csv", 5)
+#     forest.predict("data/chess-test.csv")
